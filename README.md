@@ -12,6 +12,7 @@ This repository is a lightweight harness: instructions, context routing, workflo
 - keeps product decisions with Denys;
 - defines permission and safety boundaries;
 - standardizes planning, verification, progress checkpoints, and handoffs;
+- defines a proportionate documentation-first workflow and atomic stage boundaries for deliberate project construction;
 - works with Codex, Gemini CLI/Antigravity, Claude Code, and generic file-aware agents.
 
 ## Repository map

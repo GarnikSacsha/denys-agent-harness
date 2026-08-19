@@ -26,6 +26,21 @@ real user context
 → repeated acceptance
 ```
 
+## Common construction loop
+
+For new products and major subsystems:
+
+```text
+documentation contract
+→ reviewed decisions and boundaries
+→ minimal foundation
+→ one verified vertical slice
+→ atomic stage checkpoint or authorized commit
+→ next independent slice
+```
+
+The documentation contract is proportional. Complex products may need separate scope, flows, roles, data, API, security, UI, and decision documents. Small changes may need only a short task contract and acceptance criteria.
+
 ## Common architecture lessons
 
 - Separate acquisition/evidence, policy, ranking, personalization, and presentation when those stages have different truth sources.

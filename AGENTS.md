@@ -44,6 +44,34 @@ Prefer one narrow, real end-to-end vertical slice over a broad collection of pla
 - State a safe assumption and continue when it is reversible and does not change risk. Ask one decisive question only when the answer materially changes the result or authority.
 - Keep product decisions with Denys. Agents may research, propose, implement, test, and critique; they must not silently choose product direction.
 
+## Deliberate project construction
+
+For a new product, a major subsystem, or a materially uncertain feature, do not jump directly from an idea into broad implementation.
+
+Use a proportionate preparation phase first:
+
+1. define the user-visible outcome, scope, non-goals, roles, and primary flows;
+2. document the architecture, data model, API or integration contracts, security boundaries, failure states, and acceptance criteria that are material to the current stage;
+3. record consequential or hard-to-reverse decisions in short decision records;
+4. resolve contradictions and identify explicit unknowns before using the documents as an implementation contract;
+5. only then create the minimal scaffold and implement the first real vertical slice.
+
+During an explicitly agreed documentation phase, create or change documentation only. Do not silently add application code, dependencies, or infrastructure.
+
+Documentation is preparation for delivery, not ceremony. A small bug, narrow maintenance task, or obvious local change does not require a full product specification. Match the depth of preparation to product uncertainty, security risk, number of roles, integrations, and cost of reversal.
+
+Prefer a clean sequence such as:
+
+```text
+product outcome and scope
+→ roles and user flows
+→ data/API/security contracts
+→ architecture and decisions
+→ minimal scaffold
+→ verified vertical slices
+→ real-user acceptance
+```
+
 ## Scope and autonomy
 
 Autonomy applies only inside the explicitly authorized task.
@@ -80,6 +108,11 @@ An explicit `commit + push` authorizes exactly selective commit and push for the
 - Use selective staging, never `git add .` in a mixed worktree.
 - Use actual project commands. For Python on Windows, check whether `py -m ...` is required instead of `python -m ...`.
 - Do not switch to an old branch, legacy interface, or historical implementation without evidence that it is active.
+- Treat each completed, verified stage as a potential commit boundary. Keep unrelated stages out of the same commit.
+- Prefer atomic, descriptive commits that explain the delivered outcome, for example `docs: define MVP user flows`, `feat(backend): add authentication core`, or `fix: preserve failed request reporting`.
+- Keep implementation, focused tests, and directly corresponding documentation together when they form one coherent behavior change. Separate independent concerns into separate commits.
+- Do not commit a knowingly broken intermediate state merely to produce more commits. A commit should be understandable, reviewable, and safe to continue from whenever practical.
+- If commit permission has not been granted, preserve the intended commit boundaries in the worktree and report the exact selective staging plan. Never interpret the preference for staged commits as permission to commit or push.
 
 ## Architecture and implementation
 

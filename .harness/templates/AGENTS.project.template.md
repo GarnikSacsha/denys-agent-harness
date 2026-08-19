@@ -47,6 +47,15 @@ Do not guess missing commands. Inspect project configuration and record verified
 - [Files or contracts that require special care.]
 - [Current source of truth for requirements and decisions.]
 
+## Delivery stages
+
+- Documentation contract: `[required docs and approval state]`
+- Current vertical slice: `[one coherent user-visible outcome]`
+- Acceptance criteria: `[observable checks]`
+- Intended commit boundary: `[files/outcome that belong together]`
+
+For a new or materially uncertain project, complete the proportionate documentation contract before broad implementation. For small maintenance work, keep this section compact.
+
 ## Safety and permissions
 
 - Secrets/runtime files excluded from Git: `[patterns]`
@@ -61,4 +70,5 @@ Do not guess missing commands. Inspect project configuration and record verified
 - User usefulness is evaluated separately from technical completion.
 - No unrelated files, secrets, or runtime data changed.
 - Existing context documents match the verified state.
+- Independent stages are not mixed into one unreviewable change.
 - Final handoff follows the global four-part format.
