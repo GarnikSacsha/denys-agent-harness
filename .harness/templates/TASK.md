@@ -27,6 +27,8 @@
 - [ ] Real end-to-end behavior
 - [ ] Error/empty/loading state as relevant
 - [ ] Targeted verification
+- [ ] TDD evidence recorded for behavior-changing code (`RED → GREEN → REFACTOR`)
+- [ ] Any TDD exception was declared before implementation with alternative verification
 - [ ] Diff review
 - [ ] Documentation/checkpoint updated if needed
 - [ ] Security review completed when the change crosses a protected boundary
@@ -41,6 +43,15 @@
 - External destinations: [none / allowlisted list]
 - Database effects: [none / read / scoped writes / migration]
 - Independent reviewer: [not required / agent or person]
+
+## TDD contract
+
+- Behavior under test:
+- Target test path/name:
+- RED command and expected failure:
+- GREEN command and result:
+- REFACTOR/adjacent checks:
+- Exception, if valid and declared before implementation:
 
 ## Budget and stopping
 

@@ -48,11 +48,12 @@ The phase is complete when the documents are sufficient to guide the next vertic
 For each stage:
 
 1. state the user-visible outcome and acceptance criteria;
-2. implement one coherent slice;
-3. add focused tests and update the corresponding contract documents;
-4. run proportionate verification and inspect the diff;
-5. produce a checkpoint or handoff;
-6. when explicitly authorized, create one descriptive atomic commit for that completed stage before beginning an independent stage.
+2. write the smallest meaningful test and confirm expected `RED`;
+3. implement the minimum coherent slice to reach `GREEN`;
+4. refactor safely and update the corresponding contract documents;
+5. run proportionate adjacent verification and inspect the diff;
+6. produce a checkpoint or handoff with TDD evidence;
+7. when explicitly authorized, create one descriptive atomic commit for that completed stage before beginning an independent stage.
 
 Example history:
 
@@ -72,14 +73,15 @@ Commit history should tell the construction story. Do not split mechanical fragm
 
 1. Confirm the target and relevant existing behavior.
 2. State a short plan.
-3. Make the smallest coherent vertical change.
-4. Add or update focused tests where useful.
-5. Run proportionate checks.
-6. Inspect the diff.
-7. Update existing project context when behavior or decisions changed.
-8. Deliver the four-part handoff.
+3. Write or update the smallest meaningful test and confirm expected `RED`.
+4. Make the minimum coherent vertical change and confirm `GREEN`.
+5. Refactor while keeping relevant tests green.
+6. Run proportionate adjacent checks.
+7. Inspect the diff.
+8. Update existing project context when behavior or decisions changed.
+9. Deliver the four-part handoff with TDD evidence or a pre-declared valid exception.
 
-If the work contains several independent stages, repeat steps 3–8 for each stage instead of accumulating one large unreviewable change. Commit each completed stage only when the current authorization explicitly includes commits.
+If the work contains several independent stages, repeat steps 3–9 for each stage instead of accumulating one large unreviewable change. Commit each completed stage only when the current authorization explicitly includes commits.
 
 ## Diagnosis
 
@@ -87,8 +89,8 @@ If the work contains several independent stages, repeat steps 3–8 for each sta
 2. Trace the real path until the first proven divergence.
 3. Reproduce minimally and safely.
 4. Separate root cause, excluded alternatives, and secondary issues.
-5. If implementation was requested, create a regression test and minimal fix.
-6. Verify the same route plus adjacent behavior.
+5. If implementation was requested, create and run a failing regression test before the fix.
+6. Apply the minimal fix, confirm `RED → GREEN`, and verify the same route plus adjacent behavior.
 
 ## UI review
 

@@ -20,6 +20,15 @@ Passing tests alone does not prove these properties.
 ## Authoring rules
 
 - Trace the existing path before editing and preserve current contracts unless change is intentional.
+- Use TDD for behavior-changing code. The required cycle is `RED → GREEN → REFACTOR`:
+  1. express one observable behavior in the smallest meaningful test;
+  2. run the test before implementation and confirm it fails for the intended reason;
+  3. add the minimum implementation required to pass;
+  4. run the target test and confirm it passes;
+  5. refactor for clarity without changing behavior and keep relevant tests green.
+- A test that fails because of syntax, import, fixture, environment, or unrelated setup error is not valid `RED`. The failure must demonstrate the missing or incorrect behavior.
+- Do not weaken an assertion, delete a test, over-mock the path, or change expected behavior merely to obtain `GREEN`.
+- Record the target test command and observed RED/GREEN result. If the red run cannot be preserved in logs, report the command and exact expected failure honestly.
 - Implement one coherent vertical outcome at a time.
 - Keep deterministic facts, permissions, state, arithmetic, limits, and writes in deterministic code.
 - Use explicit types and schemas at system boundaries.
@@ -45,6 +54,18 @@ Use a risk-proportionate set of:
 - one real-path end-to-end or staging acceptance scenario when needed to judge usefulness.
 
 Reject false-green tests that mock away the production route, assert only that no exception occurred, duplicate implementation logic, or freeze incorrect behavior.
+
+### TDD exceptions
+
+An exception must be stated before implementation and is limited to work where a meaningful automated test cannot reasonably lead the change:
+
+- documentation-only edits;
+- a time-boxed research spike whose output is evidence, not production behavior;
+- external platform configuration without a testable local or staging contract;
+- purely visual adjustment with no changed logic, where screenshot or viewport review is the acceptance method;
+- emergency containment, followed by a regression test before the fix is considered complete whenever technically possible.
+
+"The change is small," "the code is obvious," or "tests take longer" are not exceptions. If code behavior changes and a test harness is missing, adding the smallest suitable harness is part of the task unless it requires an unapproved architectural expansion.
 
 ## Review independence
 
@@ -92,9 +113,10 @@ No findings does not mean "perfect." It means no actionable issue was found with
 A material stage is complete only when:
 
 1. acceptance criteria are met through the real path;
-2. relevant automated and manual checks passed;
-3. final diff contains no unrelated changes, secrets, or runtime data;
-4. required security review passed;
-5. critical/high findings are resolved;
-6. documentation and handoff match the verified state;
-7. remaining unknowns and debt are explicit.
+2. TDD evidence exists for behavior-changing code, or a valid pre-declared exception and alternative verification are recorded;
+3. relevant automated and manual checks passed;
+4. final diff contains no unrelated changes, secrets, or runtime data;
+5. required security review passed;
+6. critical/high findings are resolved;
+7. documentation and handoff match the verified state;
+8. remaining unknowns and debt are explicit.

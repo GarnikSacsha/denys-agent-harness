@@ -136,6 +136,9 @@ An explicit `commit + push` authorizes exactly selective commit and push for the
 ## Code quality and independent review gate
 
 - Working code is not automatically acceptable code. Read `.harness/CODE-QUALITY.md` for implementation and review standards.
+- Use test-driven development for every behavior-changing code task: write or change the smallest meaningful test first, run it and confirm the expected failure, implement the minimum code to pass, then refactor while keeping the relevant suite green.
+- Do not write implementation first and add a passing test afterward while claiming TDD. Record the `RED → GREEN → REFACTOR` evidence in the task checkpoint or handoff.
+- A TDD exception is allowed only when no meaningful automated test can be written before the change, such as documentation-only work, a time-boxed exploratory spike, external configuration with no test harness, or purely visual adjustment. State the exception before implementation and define another concrete verification method.
 - Every material implementation stage requires a diff review after tests and before commit, merge, or handoff.
 - Review correctness, failure behavior, security, data boundaries, architecture fit, readability, tests, observability, performance risk, and user usefulness separately.
 - The authoring agent must perform a self-review. For commercial, security-sensitive, high-risk, or broad changes, use a second independent reviewer or a clearly separated fresh review pass that does not assume the implementation is correct.
@@ -171,13 +174,14 @@ Use the smallest evidence set proportionate to risk:
 
 1. Read the real execution path.
 2. Reproduce minimally without external cost when possible.
-3. Add a focused regression test when the risk justifies it.
-4. Apply the minimal patch.
-5. Run the target test and confirm red-to-green when applicable.
-6. Run adjacent tests, typecheck, lint, or build according to impact.
-7. Inspect the final diff for unrelated files, secrets, generated data, and accidental behavior changes.
-8. After separate approval, verify staging with one controlled real scenario.
-9. Evaluate technical success and user usefulness separately.
+3. Write or update the smallest meaningful test for the intended behavior.
+4. Run it before implementation and confirm that it fails for the expected reason (`RED`).
+5. Apply the minimal patch and confirm the target test passes (`GREEN`).
+6. Refactor only as needed while keeping the target and relevant adjacent tests green (`REFACTOR`).
+7. Run adjacent tests, typecheck, lint, or build according to impact.
+8. Inspect the final diff for unrelated files, secrets, generated data, and accidental behavior changes.
+9. After separate approval, verify staging with one controlled real scenario.
+10. Evaluate technical success and user usefulness separately.
 
 Never say a check passed if it did not run. Green tests are insufficient when they bypass the real route or assert the wrong behavior.
 

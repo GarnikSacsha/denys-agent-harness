@@ -9,6 +9,9 @@
 
 ## Evidence
 
+- TDD RED evidence:
+- TDD GREEN evidence:
+- Declared exception and alternative verification, if applicable:
 - Tests/checks examined:
 - Real execution path traced:
 - Manual/staging behavior examined:
@@ -28,6 +31,7 @@
 - [ ] Architecture fit, coupling, duplication, migration safety
 - [ ] Readability, naming, size, dead code, unnecessary abstraction
 - [ ] Test quality, negative cases, production-route coverage
+- [ ] TDD sequence is genuine; tests were not weakened or added only after implementation
 - [ ] Observability, cost, latency, bounds, rollback
 - [ ] Final diff contains no unrelated files or runtime data
 

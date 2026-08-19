@@ -66,6 +66,9 @@ def main() -> int:
     for required_heading in ("## Startup protocol", "## Scope and autonomy", "## Security gate", "## Code quality and independent review gate", "## Stopping criteria", "## Final handoff"):
         if required_heading not in agents_text:
             errors.append(f"AGENTS.md missing required section: {required_heading}")
+    for required_phrase in ("RED → GREEN → REFACTOR", "TDD exception"):
+        if required_phrase not in agents_text:
+            errors.append(f"AGENTS.md missing required TDD contract: {required_phrase}")
 
     required_sections = {
         ".harness/SECURITY.md": (
@@ -76,6 +79,7 @@ def main() -> int:
         ),
         ".harness/CODE-QUALITY.md": (
             "## Test quality",
+            "### TDD exceptions",
             "## Review independence",
             "## Finding severity",
             "## Acceptance gate",
