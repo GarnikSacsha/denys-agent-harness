@@ -10,11 +10,13 @@ Then route by task:
 | Bug diagnosis | `WORKFLOWS.md` → Diagnosis; relevant code/logs/tests |
 | New product or feature planning | `PROFILE.md`; `PROJECT-PATTERNS.md`; project requirements |
 | Architecture or new dependency | `PROFILE.md`; `POLICIES.md`; current architecture and evidence |
+| Commercial project, sensitive data, auth, database, secrets, or production | `SECURITY.md`; project `SECURITY.md`, threat model, data inventory, and access matrix |
+| Implementation or code review | `CODE-QUALITY.md`; `WORKFLOWS.md` → Code review gate; relevant diff/tests/contracts |
 | LLM/tool-calling work | `POLICIES.md` → LLM, tools, evidence, money |
 | UI/UX work | `PROFILE.md` → Product and visual preferences; current design system |
 | Release/staging/production | `POLICIES.md` → Release and external actions; project deployment docs |
 | New chat or agent handoff | `WORKFLOWS.md` → Checkpoint and handoff |
-| New repository setup | `templates/AGENTS.project.template.md`; `templates/TASK.md` |
+| New repository setup | `templates/AGENTS.project.template.md`; `templates/TASK.md`; security templates when the project is commercial or handles sensitive data |
 
 ## Context rules
 

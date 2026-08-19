@@ -62,6 +62,18 @@ For a new or materially uncertain project, complete the proportionate documentat
 - Sensitive actions: `[actions]`
 - Project-specific approval gates: `[gates]`
 - Never modify casually: `[paths/systems]`
+- Production credentials available to agents: `no` unless explicitly documented and approved
+- Allowed network destinations: `[deny by default; list exceptions]`
+- Database roles available during agent work: `[none / local / staging read-only]`
+- Required security documents: `[SECURITY / THREAT-MODEL / DATA-INVENTORY / ACCESS-MATRIX]`
+
+## Review gates
+
+- Self-review required after implementation: `yes`
+- Independent review required for: `[commercial / auth / data / database / payment / deployment / broad change]`
+- Blocking severities: `critical, high`
+- Required automated checks: `[tests / lint / typecheck / build / secret scan / dependency scan / SAST]`
+- Merge/deploy approval owner: `[person or role]`
 
 ## Definition of done
 
@@ -71,4 +83,5 @@ For a new or materially uncertain project, complete the proportionate documentat
 - No unrelated files, secrets, or runtime data changed.
 - Existing context documents match the verified state.
 - Independent stages are not mixed into one unreviewable change.
+- Security and code-review gates required by risk have passed or blockers are reported.
 - Final handoff follows the global four-part format.

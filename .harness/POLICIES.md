@@ -2,6 +2,8 @@
 
 These policies elaborate the mandatory contract. They do not expand agent authority.
 
+For enforceable commercial-project security boundaries, also read `SECURITY.md`. For implementation and review quality gates, read `CODE-QUALITY.md`.
+
 ## Permissions and blast radius
 
 - Prefer least privilege and reversible actions.

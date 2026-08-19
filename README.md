@@ -13,6 +13,7 @@ This repository is a lightweight harness: instructions, context routing, workflo
 - defines permission and safety boundaries;
 - standardizes planning, verification, progress checkpoints, and handoffs;
 - defines a proportionate documentation-first workflow and atomic stage boundaries for deliberate project construction;
+- provides a commercial-project security constitution and independent code-review quality gate;
 - works with Codex, Gemini CLI/Antigravity, Claude Code, and generic file-aware agents.
 
 ## Repository map
@@ -25,6 +26,8 @@ AI.md                             Generic-agent entry point
 .harness/START-HERE.md            Context router
 .harness/PROFILE.md               Observed preferences and product taste
 .harness/POLICIES.md              Detailed safety, money, LLM, and release rules
+.harness/SECURITY.md              Enforceable commercial security baseline
+.harness/CODE-QUALITY.md          AI-generated code quality and review standard
 .harness/WORKFLOWS.md             Standard task workflows
 .harness/PROJECT-PATTERNS.md      Reusable lessons from previous projects
 .harness/templates/               Files copied into a project

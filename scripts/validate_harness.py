@@ -15,12 +15,21 @@ REQUIRED_FILES = (
     ".harness/START-HERE.md",
     ".harness/PROFILE.md",
     ".harness/POLICIES.md",
+    ".harness/SECURITY.md",
+    ".harness/CODE-QUALITY.md",
     ".harness/WORKFLOWS.md",
     ".harness/PROJECT-PATTERNS.md",
     ".harness/templates/AGENTS.project.template.md",
     ".harness/templates/TASK.md",
     ".harness/templates/HANDOFF.md",
     ".harness/templates/DECISION.md",
+    ".harness/templates/SECURITY.project.template.md",
+    ".harness/templates/THREAT-MODEL.md",
+    ".harness/templates/DATA-INVENTORY.md",
+    ".harness/templates/ACCESS-MATRIX.md",
+    ".harness/templates/CODE-REVIEW.md",
+    ".harness/templates/INCIDENT-RESPONSE.md",
+    ".harness/templates/DEPLOYMENT-GATE.md",
 )
 
 SKILL_FILES = tuple((ROOT / ".agents" / "skills").glob("*/SKILL.md"))
@@ -54,9 +63,34 @@ def main() -> int:
         errors.extend(validate_skill(skill_file))
 
     agents_text = (ROOT / "AGENTS.md").read_text(encoding="utf-8") if (ROOT / "AGENTS.md").exists() else ""
-    for required_heading in ("## Startup protocol", "## Scope and autonomy", "## Stopping criteria", "## Final handoff"):
+    for required_heading in ("## Startup protocol", "## Scope and autonomy", "## Security gate", "## Code quality and independent review gate", "## Stopping criteria", "## Final handoff"):
         if required_heading not in agents_text:
             errors.append(f"AGENTS.md missing required section: {required_heading}")
+
+    required_sections = {
+        ".harness/SECURITY.md": (
+            "## Data classification",
+            "## Agent execution boundary",
+            "## Database safety",
+            "## Incident response",
+        ),
+        ".harness/CODE-QUALITY.md": (
+            "## Test quality",
+            "## Review independence",
+            "## Finding severity",
+            "## Acceptance gate",
+        ),
+        ".harness/WORKFLOWS.md": (
+            "## Security review gate",
+            "## Code review gate",
+        ),
+    }
+    for relative, headings in required_sections.items():
+        path = ROOT / relative
+        text = path.read_text(encoding="utf-8") if path.exists() else ""
+        for heading in headings:
+            if heading not in text:
+                errors.append(f"{relative} missing required section: {heading}")
 
     if errors:
         print("Harness validation failed:")

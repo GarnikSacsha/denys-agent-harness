@@ -98,6 +98,40 @@ If the work contains several independent stages, repeat steps 3–8 for each sta
 4. Propose specific changes in the existing style.
 5. Verify visually after implementation when tooling allows.
 
+## Security review gate
+
+Use for commercial projects and any change involving authentication, authorization, customer data, secrets, uploads, payments, external providers, databases, infrastructure, deployment, or production.
+
+1. Read the global and project security contracts, threat model, data inventory, and access matrix.
+2. Identify changed trust boundaries, protected assets, actors, entry points, data flows, tools, credentials, network destinations, and side effects.
+3. Verify least privilege structurally: the agent and application should lack permissions they do not need.
+4. Check tenant/workspace authorization, input validation, output encoding, secret handling, logging, retention, provider disclosure, retry/idempotency, and destructive paths.
+5. Confirm local/staging/production separation and that production access is absent unless explicitly authorized.
+6. Run available secret, dependency, static-analysis, and focused security tests. Record unavailable checks explicitly.
+7. Classify findings as critical, high, medium, or low with evidence and the affected boundary.
+8. Block acceptance for unresolved critical/high findings. Record the owner and decision for deferred medium/low findings.
+
+## Code review gate
+
+Run after implementation and relevant tests, before commit, merge, release, or completed-stage handoff.
+
+1. Read the task contract, acceptance criteria, project instructions, architecture contracts, and final diff.
+2. Trace the real execution path instead of reviewing filenames or summaries only.
+3. Review in this order:
+   - correctness and user-visible behavior;
+   - error, empty, retry, timeout, concurrency, and partial-failure behavior;
+   - authorization, data isolation, secrets, injection, and external side effects;
+   - architecture fit, duplication, coupling, replaceability, and migration safety;
+   - readability, naming, size, comments, dead code, and unnecessary abstraction;
+   - test quality, negative cases, production-path coverage, and false-green risk;
+   - observability, cost, latency, resource bounds, and operational rollback.
+4. Search specifically for hidden placeholders, hardcoded values, broad exception handling, swallowed errors, unsafe defaults, debug output, secrets, stale flags, and unrelated changes.
+5. Report findings first, ordered by severity, with file/path and concrete consequence. State what was reviewed and what was not verified.
+6. The author fixes accepted findings in focused changes and reruns relevant checks.
+7. Repeat review only for the changed risk area; stop after the agreed acceptance gate is met.
+
+For commercial or high-risk work, the reviewer should be independent from the implementation pass. If only one agent is available, start a fresh review pass with implementation assumptions cleared and review the diff as potentially wrong.
+
 ## Checkpoint and handoff
 
 For long work, maintain:

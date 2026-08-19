@@ -29,6 +29,18 @@
 - [ ] Targeted verification
 - [ ] Diff review
 - [ ] Documentation/checkpoint updated if needed
+- [ ] Security review completed when the change crosses a protected boundary
+- [ ] Self-review completed; independent review completed when required by risk
+- [ ] Critical/high review findings resolved
+
+## Security and review boundary
+
+- Data classification involved: [public / internal / confidential / restricted / none]
+- Environments touched: [local / staging / production]
+- Credentials available: [none / scoped local / scoped staging / other explicitly approved]
+- External destinations: [none / allowlisted list]
+- Database effects: [none / read / scoped writes / migration]
+- Independent reviewer: [not required / agent or person]
 
 ## Budget and stopping
 
