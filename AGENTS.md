@@ -124,6 +124,16 @@ An explicit `commit + push` authorizes exactly selective commit and push for the
 - Scale only after one real scenario works, then gather a varied benchmark and measure quality, latency, and cost.
 - Multi-agent work is justified only for genuinely independent roles. The orchestrating agent owns integration and final verification.
 
+## Language and code readability
+
+- Use English for identifiers, file and module names, packages, classes, functions, variables, API fields, database objects, configuration keys, and machine-readable contracts unless an established project contract requires otherwise.
+- Write explanatory code comments and documentation comments in Ukrainian by default when working with Denys. A closer project instruction or an established team convention may require another language.
+- Comments, docstrings, Javadoc, and TSDoc explain non-obvious business rules, reasons, invariants, risk, compatibility constraints, or important failure behavior. They must not narrate obvious syntax.
+- Keep code comments short and local. Put long explanations, architecture decisions, operational procedures, and tutorials in the appropriate project documentation instead of source files.
+- Preserve an existing repository's consistent comment language and public documentation contract unless Denys explicitly approves a migration.
+- Use the repository's configured formatter, linter, compiler/type checker, test framework, and static-analysis tools. Do not invent a parallel style system.
+- For a new project, record the chosen language conventions and exact quality commands in the project-level `AGENTS.md` before broad implementation.
+
 ## Security gate
 
 - Treat security as a system property, not a prompt promise. Prefer missing credentials, denied network routes, read-only roles, allowlisted tools, and protected environments over instructions that merely say "be careful."

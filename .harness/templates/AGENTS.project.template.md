@@ -13,6 +13,8 @@
 ## Stack and runtime
 
 - Language/framework: [actual stack]
+- Supported language/runtime versions: [for example Python 3.13 / Node 24 / JDK 21]
+- Comment and documentation language: [Ukrainian by default; record an approved project override]
 - Persistence: [actual storage]
 - External providers: [actual integrations]
 - Deployment target: [if applicable]
@@ -32,16 +34,24 @@
 ```text
 Install: [command]
 Develop: [command]
+Format/check format: [command]
+Lint/static analysis: [command]
+Typecheck/compile: [command]
 Targeted test: [command]
-Full test: [command]
-Lint/typecheck: [command]
-Build: [command]
+Full relevant tests: [command]
+Build/package: [command]
 ```
 
 Do not guess missing commands. Inspect project configuration and record verified commands.
 
 ## Architecture and conventions
 
+- Identifiers and machine-readable contracts: `English` unless explicitly overridden.
+- Explanatory comments/docstrings/Javadoc/TSDoc: `Ukrainian` by default; explain reasons and invariants, not syntax.
+- Formatter: [existing project tool or approved new-project default]
+- Linter/static analysis: [existing project tools]
+- Typecheck/compile: [existing project command]
+- Test framework: [existing project framework]
 - [Important boundaries and data flow.]
 - [Patterns to reuse.]
 - [Files or contracts that require special care.]
