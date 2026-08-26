@@ -45,15 +45,19 @@ The phase is complete when the documents are sufficient to guide the next vertic
 
 ### Phase 2 — vertical delivery
 
+Before implementation, define a commit map for the bounded task. Each planned commit names one coherent outcome, expected paths, and focused verification. The map may change when evidence changes the true boundary, but the handoff must explain the change.
+
 For each stage:
 
 1. state the user-visible outcome and acceptance criteria;
 2. write the smallest meaningful test and confirm expected `RED`;
 3. implement the minimum coherent slice to reach `GREEN`;
 4. refactor safely and update the corresponding contract documents;
-5. run proportionate adjacent verification and inspect the diff;
-6. produce a checkpoint or handoff with TDD evidence;
-7. when explicitly authorized, create one descriptive atomic commit for that completed stage before beginning an independent stage.
+5. run the stage's focused verification and proportionate adjacent checks;
+6. inspect the exact diff and confirm it contains only the mapped outcome;
+7. produce a checkpoint or handoff with TDD evidence;
+8. when local commits are authorized, selectively stage and create one descriptive atomic commit for the completed GREEN stage before beginning an independent stage;
+9. confirm the remaining worktree still matches the commit map.
 
 Example history:
 
@@ -67,7 +71,11 @@ feat(backend): add application foundation
 feat: deliver first end-to-end user path
 ```
 
-Commit history should tell the construction story. Do not split mechanical fragments that only work together, and do not combine unrelated outcomes into a catch-all commit.
+Commit history should tell the construction story. A commit is a recoverable GREEN checkpoint: do not split mechanical fragments that only work together, do not commit a broken RED state, and do not combine unrelated outcomes into a catch-all commit.
+
+One explicit local-commit authorization for the bounded task permits all commits in its agreed commit map; it is not permission to push or to expand scope. Push, pull request, merge, release, and deployment remain separate gates.
+
+Preserve checkpoint history. Do not squash, amend, rebase, reset, or otherwise rewrite accepted commits without explicit approval. When history is shared or pushed, use a new revert or corrective commit so the previous checkpoints remain reachable.
 
 ## Focused implementation
 
@@ -81,7 +89,7 @@ Commit history should tell the construction story. Do not split mechanical fragm
 8. Update existing project context when behavior or decisions changed.
 9. Deliver the four-part handoff with TDD evidence or a pre-declared valid exception.
 
-If the work contains several independent stages, repeat steps 3–9 for each stage instead of accumulating one large unreviewable change. Commit each completed stage only when the current authorization explicitly includes commits.
+If the work contains several independent stages, repeat steps 3–9 for each stage instead of accumulating one large unreviewable change. When the bounded task has local-commit authorization, commit each completed GREEN stage before starting the next independent stage. Without that authorization, preserve and report the exact selective staging boundaries without committing.
 
 ## Diagnosis
 

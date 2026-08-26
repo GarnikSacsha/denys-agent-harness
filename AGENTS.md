@@ -97,7 +97,9 @@ Explicit approval is required before:
 - destructive actions, data deletion, resets, overwrites, or secret rotation;
 - changing unrelated or user-authored uncommitted files.
 
-An explicit `commit + push` authorizes exactly selective commit and push for the agreed scope. It does not authorize a pull request or deployment.
+An explicit local-commit authorization for a bounded task covers the task's agreed commit map: the agent may create multiple selective local commits for its completed stages without asking again before every commit. It does not authorize push, pull request, merge, release, deployment, history rewriting, or work outside the approved scope.
+
+An explicit `commit + push` authorizes the agreed selective local commits and one push for the agreed scope. It does not authorize a pull request, merge, release, deployment, or history rewriting.
 
 ## Existing work and Git safety
 
@@ -108,11 +110,14 @@ An explicit `commit + push` authorizes exactly selective commit and push for the
 - Use selective staging, never `git add .` in a mixed worktree.
 - Use actual project commands. For Python on Windows, check whether `py -m ...` is required instead of `python -m ...`.
 - Do not switch to an old branch, legacy interface, or historical implementation without evidence that it is active.
-- Treat each completed, verified stage as a potential commit boundary. Keep unrelated stages out of the same commit.
-- Prefer atomic, descriptive commits that explain the delivered outcome, for example `docs: define MVP user flows`, `feat(backend): add authentication core`, or `fix: preserve failed request reporting`.
-- Keep implementation, focused tests, and directly corresponding documentation together when they form one coherent behavior change. Separate independent concerns into separate commits.
-- Do not commit a knowingly broken intermediate state merely to produce more commits. A commit should be understandable, reviewable, and safe to continue from whenever practical.
-- If commit permission has not been granted, preserve the intended commit boundaries in the worktree and report the exact selective staging plan. Never interpret the preference for staged commits as permission to commit or push.
+- Before implementation, write a commit map for the bounded task: each entry names one coherent outcome, its expected paths, and its verification. Update the map when evidence changes the boundary.
+- When local commits are authorized, every completed, verified, coherent stage must end in one atomic local commit before an independent stage begins. Keep unrelated stages out of the same commit.
+- Prefer descriptive Conventional Commit messages that explain the delivered outcome, for example `docs: define MVP user flows`, `feat(backend): add authentication core`, or `fix: preserve failed request reporting`.
+- Keep implementation, focused tests, migrations, and directly corresponding documentation together when they are required for one coherent behavior. Separate independently useful or reversible outcomes into separate commits.
+- A commit is a recoverable GREEN checkpoint, not a timer or file-count checkpoint. Do not commit a knowingly broken `RED` state, a partial mechanical fragment that cannot stand alone, or an unrelated catch-all.
+- Before each commit, run its declared focused verification, inspect the exact diff, and stage only its declared paths. After the commit, confirm the remaining worktree still matches the commit map.
+- Do not squash, amend, rebase, reset, or otherwise rewrite accepted checkpoint commits without explicit approval. For shared or pushed history, prefer a new revert or corrective commit so earlier checkpoints remain reachable.
+- If local-commit permission has not been granted, preserve the same intended boundaries in the worktree and report the exact selective staging plan. Never interpret this cadence as permission to commit or push.
 
 ## Architecture and implementation
 

@@ -62,7 +62,11 @@ Do not guess missing commands. Inspect project configuration and record verified
 - Documentation contract: `[required docs and approval state]`
 - Current vertical slice: `[one coherent user-visible outcome]`
 - Acceptance criteria: `[observable checks]`
-- Intended commit boundary: `[files/outcome that belong together]`
+- Commit map: `[ordered coherent outcomes, expected paths, and focused verification]`
+- Local-commit authorization: `[not granted / granted for this bounded task]`
+- Push authorization: `[not granted / explicitly granted]`
+
+When local commits are authorized, every completed verified GREEN stage ends in one selective atomic commit before the next independent stage. Keep code, focused tests, migrations, and directly corresponding documentation together when they form one behavior; separate independently useful or reversible outcomes. Never use file count as the boundary, commit a knowingly broken RED state, or rewrite accepted checkpoint history without explicit approval.
 
 For a new or materially uncertain project, complete the proportionate documentation contract before broad implementation. For small maintenance work, keep this section compact.
 
