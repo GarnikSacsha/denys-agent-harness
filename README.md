@@ -61,6 +61,7 @@ powershell -ExecutionPolicy Bypass -File .\scripts\bootstrap-project.ps1 -Projec
 ```
 
 The script never overwrites existing instruction files unless `-Force` is explicitly supplied.
+It reads source instructions as UTF-8 in both Windows PowerShell and PowerShell 7. Use a separate existing project directory; overlapping paths and symlinks/junctions are rejected before copying. See [Agent integration](docs/AGENT-INTEGRATION.md) for validation limits and regression checks.
 
 ### Option C — global agent configuration
 
