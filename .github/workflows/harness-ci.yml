@@ -1,0 +1,36 @@
+name: Harness CI
+
+on:
+  push:
+    branches: [main, 'feature/**']
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    name: Static checks (${{ matrix.os }})
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Validate Harness structure
+        run: python -m scripts.validate_harness
+      - name: Run deterministic agent entry tests
+        run: python -m unittest discover -s tests -p 'test_*.py' -v
+      - name: Check static agent entry integration
+        run: python -m scripts.check_agent_entry --agent all
+      - name: Exercise Windows project bootstrap
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: ./tests/bootstrap_smoke.ps1

@@ -81,6 +81,23 @@ compare documentation with code, and report the current architecture and risks.
 Do not modify files. End with the smallest useful next vertical slice.
 ```
 
+## Agent entry preflight and CI
+
+Check the entry-point files, context router, and skill references before opening a coding-agent session:
+
+```powershell
+py -m scripts.check_agent_entry --project "C:\path\to\project" --agent all
+```
+
+A `static_ready` report is **not** evidence that an agent actually loaded or obeyed the files. Complete the read-only runtime handshake documented in [Agent integration](docs/AGENT-INTEGRATION.md).
+
+The GitHub Actions workflow runs structural validation, deterministic agent-entry tests, and a Windows bootstrap smoke test on isolated temporary projects. Run the Python checks locally with:
+
+```powershell
+py -m unittest discover -s tests -p "test_*.py" -v
+```
+
+
 ## Validate the Harness
 
 ```powershell
