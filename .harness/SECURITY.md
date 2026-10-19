@@ -70,6 +70,31 @@ administrator       → human-controlled break-glass access
 - Back up before high-risk changes, verify recovery capability, and define rollback before execution.
 - Logs, fixtures, bug reports, and staging copies must not contain raw production customer data.
 
+## PostgreSQL process and temporary-cluster safety
+
+This rule applies to Codex, Gemini, Claude, reviewers, test runners, scripts, and delegated agents. The same principle applies to other stateful services and databases.
+
+**Never terminate PostgreSQL processes by name, wildcard, or system-wide process selection.** Forbidden examples include:
+
+```powershell
+Get-Process postgres | Stop-Process
+Stop-Process -Name postgres
+taskkill /IM postgres.exe /F
+```
+
+On Unix, `pkill postgres` and `killall postgres` are likewise forbidden. Adding `-Force`, `-ErrorAction SilentlyContinue`, or a filtering pipeline does not make a broad stop safe. PID, port, process owner, or process name *alone* are never sufficient proof that a process belongs to the current task.
+
+- Do not stop, restart, reconfigure, or interfere with existing user, service-managed, development, review, staging, or production clusters. Never assume a familiar port (including `5432`) is safe to use.
+- A temporary cluster may be managed **only** if the current task created it in a new disposable directory and recorded its exact canonical `data_directory`, port, process identity/command line, and ownership. Before any destructive operation, verify the connected instance's `SHOW data_directory` and `SHOW port`, and confirm they match the recorded instance. Verify test DB identity/guard separately before migrations, downgrades, or cleanup.
+- Use read-only process, service, connection, and `pg_ctl status` queries for discovery. Discovery must never be piped into a terminating command.
+- Stop only the verified task-owned instance using `pg_ctl -D "<verified-temporary-data-directory>" stop -m fast` (or its platform equivalent targeting that exact directory). Afterward verify its shutdown and inspect the effect on pre-existing clusters using read-only checks.
+- Never fall back to global `Stop-Process`, `taskkill`, `pkill`, `killall`, or blanket child-process cleanup if a targeted stop fails or hangs. Report `BLOCKED` with the available evidence; a separately approved recovery plan is required before any stronger action.
+- Delete only disposable directories created by the current task, after verifying shutdown and exact path. Do not remove another agent's temporary cluster or an unknown audit directory.
+- Record the exact command, exit code, stderr/stdout, verified targets, and before/after observations. Suppressed errors, an exit code of 1, or an empty output **do not prove** that zero processes were affected.
+- For any uncertainty about instance identity, existing services, or the effect of a command: **fail closed, do not act, and ask for explicit approval.**
+
+This is an agent behavior policy, not a substitute for OS permissions, isolated database credentials, or execution-time tool restrictions.
+
 ## External providers and model data
 
 Before transmitting non-public data, record:
