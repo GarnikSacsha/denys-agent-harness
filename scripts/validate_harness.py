@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from pathlib import Path
+import re
 import sys
 
 
@@ -37,13 +38,33 @@ SKILL_FILES = tuple((ROOT / ".agents" / "skills").glob("*/SKILL.md"))
 
 def validate_skill(path: Path) -> list[str]:
     errors: list[str] = []
-    text = path.read_text(encoding="utf-8")
-    if not text.startswith("---\n"):
-        errors.append(f"{path.relative_to(ROOT)}: missing YAML frontmatter")
-    if "\nname:" not in text or "\ndescription:" not in text:
-        errors.append(f"{path.relative_to(ROOT)}: missing name or description")
+    label = path.relative_to(ROOT) if path.is_relative_to(ROOT) else path.name
+    try:
+        text = path.read_text(encoding="utf-8-sig")
+    except (OSError, UnicodeError) as exc:
+        return [f"{label}: unreadable skill ({type(exc).__name__})"]
+    lines = text.splitlines()
+    if not lines or lines[0] != "---" or "---" not in lines[1:]:
+        return [f"{label}: missing or unclosed frontmatter"]
+    fields: dict[str, str] = {}
+    for line in lines[1:lines.index("---", 1)]:
+        if not line.strip():
+            continue
+        match = re.fullmatch(r"(name|description):[ \t]+(.+)", line)
+        if not match:
+            errors.append(f"{label}: expected flat name/description fields")
+            continue
+        key, value = match.groups()
+        value = value.strip()
+        if key in fields or not value or value[0] in "\"'[{|>&*!#" or ": " in value:
+            errors.append(f"{label}: invalid or duplicate {key}")
+        fields[key] = value
+    if not re.fullmatch(r"[a-z0-9]+(?:-[a-z0-9]+)*", fields.get("name", "")):
+        errors.append(f"{label}: invalid or missing name")
+    if not fields.get("description"):
+        errors.append(f"{label}: missing description")
     if "TODO" in text or "[TODO" in text:
-        errors.append(f"{path.relative_to(ROOT)}: contains TODO placeholder")
+        errors.append(f"{label}: contains TODO placeholder")
     return errors
 
 

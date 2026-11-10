@@ -61,6 +61,7 @@ powershell -ExecutionPolicy Bypass -File .\scripts\bootstrap-project.ps1 -Projec
 ```
 
 The script never overwrites existing instruction files unless `-Force` is explicitly supplied.
+It reads source instructions as UTF-8 in both Windows PowerShell and PowerShell 7. Use a separate existing project directory; overlapping paths and symlinks/junctions are rejected before copying. See [Agent integration](docs/AGENT-INTEGRATION.md) for validation limits and regression checks.
 
 ### Option C — global agent configuration
 
@@ -80,6 +81,23 @@ find the real repository root, inspect Git state, identify entry points and real
 compare documentation with code, and report the current architecture and risks.
 Do not modify files. End with the smallest useful next vertical slice.
 ```
+
+## Agent entry preflight and CI
+
+Check the entry-point files, context router, and skill references before opening a coding-agent session:
+
+```powershell
+py -m scripts.check_agent_entry --project "C:\path\to\project" --agent all
+```
+
+A `static_ready` report is **not** evidence that an agent actually loaded or obeyed the files. Complete the read-only runtime handshake documented in [Agent integration](docs/AGENT-INTEGRATION.md).
+
+The GitHub Actions workflow runs structural validation, deterministic agent-entry tests, and a Windows bootstrap smoke test on isolated temporary projects. Run the Python checks locally with:
+
+```powershell
+py -m unittest discover -s tests -p "test_*.py" -v
+```
+
 
 ## Validate the Harness
 
