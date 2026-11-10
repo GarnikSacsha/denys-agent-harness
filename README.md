@@ -99,6 +99,20 @@ py -m unittest discover -s tests -p "test_*.py" -v
 ```
 
 
+## Offline behavioral evaluations
+
+The [Evaluation Engine v0.1](docs/EVALUATION.md) evaluates recorded evidence for ten
+engineering/security scenarios and compares baseline/candidate reports. It is
+deterministic, standard-library-only, and never executes an agent or payload command.
+
+```powershell
+py -m scripts.evaluate evaluate --evidence tests/fixtures/evaluation/positive.json
+```
+
+This example is **synthetic**. A passing fixture proves evaluator behavior, not live
+Codex/Gemini/Claude compliance. Missing evidence remains `INCONCLUSIVE` with a nonzero
+exit code; see the guide for evidence collection, comparison and limitations.
+
 ## Validate the Harness
 
 ```powershell
