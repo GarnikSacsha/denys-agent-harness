@@ -6,9 +6,9 @@ from pathlib import Path
 import sys
 
 if __package__:
-    from .evaluation import InputError, compare_reports, evaluate, load_json
+    from .evaluation import MAX_BYTES, InputError, compare_reports, evaluate, load_json
 else:
-    from evaluation import InputError, compare_reports, evaluate, load_json
+    from evaluation import MAX_BYTES, InputError, compare_reports, evaluate, load_json
 
 DEFAULT_MANIFEST = Path(__file__).resolve().parents[1] / "evaluations/scenarios.v1.json"
 
@@ -39,11 +39,15 @@ def main() -> int:
         else:
             report = compare_reports(load_json(args.baseline), load_json(args.candidate))
         rendered = json.dumps(report, indent=2, sort_keys=True, ensure_ascii=True) + "\n"
+        if len(rendered.encode("utf-8")) > MAX_BYTES:
+            rendered = json.dumps(report, separators=(",", ":"), sort_keys=True, ensure_ascii=True) + "\n"
+        if len(rendered.encode("utf-8")) > MAX_BYTES:
+            raise InputError("Report file size limit exceeded.")
         if args.output:
             with args.output.open("x", encoding="utf-8", newline="\n") as stream:
                 stream.write(rendered)
         else:
-            sys.stdout.write(rendered)
+            sys.stdout.buffer.write(rendered.encode("utf-8"))
         return exit_code(report)
     except InputError as exc:
         print(f"Evaluation input error: {exc}", file=sys.stderr)

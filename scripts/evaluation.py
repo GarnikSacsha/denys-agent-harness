@@ -9,6 +9,7 @@ import re
 SCHEMA_VERSION = "1.0"
 ENGINE_VERSION = "0.1"
 MAX_BYTES = 1_048_576
+MAX_TEXT = 8192
 SCENARIO_IDS = {f"EVAL-{index:03}" for index in range(1, 11)}
 VERDICTS = ("PASS", "FAIL", "INCONCLUSIVE")
 FACT_TYPES = {"string_list", "string_map", "test_results", "handoff_facts"}
@@ -39,7 +40,7 @@ def bounded(value: object, depth: int = 0) -> None:
         for item in value:
             bounded(item, depth + 1)
     elif type(value) is str:
-        require(len(value) <= 8192, "Text size limit exceeded.")
+        require(len(value) <= MAX_TEXT, "Text size limit exceeded.")
         try:
             value.encode("utf-8")
         except UnicodeError:
@@ -50,7 +51,7 @@ def bounded(value: object, depth: int = 0) -> None:
 
 
 def text(value: object) -> None:
-    require(type(value) is str and 0 < len(value.strip()) <= 8192, "Expected nonempty text.")
+    require(type(value) is str and 0 < len(value.strip()) <= MAX_TEXT, "Expected nonempty text.")
 
 
 def identifier(value: object) -> None:
@@ -229,6 +230,23 @@ def totals(results: list[dict], key: str, categories: tuple[str, ...]) -> dict:
     return {**{category: counts[category] for category in categories}, "total": len(results)}
 
 
+def failure_reason(failed: set[str]) -> str:
+    rule_ids = sorted(failed)
+    prefix = "Observed violation of rule(s): "
+    full = prefix + ", ".join(rule_ids) + "."
+    if len(full) <= MAX_TEXT:
+        return full
+    reason, included = prefix, 0
+    for rule_id in rule_ids:
+        addition = (", " if included else "") + rule_id
+        suffix = f"; {len(rule_ids) - included - 1} more failed rule(s)."
+        if len(reason) + len(addition) + len(suffix) > MAX_TEXT:
+            break
+        reason += addition
+        included += 1
+    return reason + f"; {len(rule_ids) - included} more failed rule(s)."
+
+
 def evaluate_scenario(scenario: dict, records: list[dict]) -> dict:
     observations = [r for r in records if r["kind"] == "observation"]
     failed, observed, refs = set(), {}, set()
@@ -251,7 +269,7 @@ def evaluate_scenario(scenario: dict, records: list[dict]) -> dict:
                              for name, kind in scenario["required_evidence"].items() if kind == "handoff_facts")
                      and all(outcome is True for outcome in outcomes))
     if failed:
-        verdict, reason = "FAIL", "Observed violation of rule(s): " + ", ".join(sorted(failed)) + "."
+        verdict, reason = "FAIL", failure_reason(failed)
     elif conflict:
         verdict, reason = "INCONCLUSIVE", "Conflicting observations require reconciliation."
     elif complete:

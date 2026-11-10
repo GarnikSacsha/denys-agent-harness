@@ -67,6 +67,9 @@ they retain suite/manifest and evidence fingerprints, run/revision/mode and all 
   unexercised, missing required facts/context, or contradictory.
 
 Each result names rule IDs or the missing-evidence reason and retains record/artifact IDs.
+Failure reasons retain the full sorted rule list when it fits within 8192 characters.
+Otherwise they list a sorted prefix of whole rule IDs and the exact number of additional
+failed rules. This bounds presentation only: all rules still contribute to the verdict.
 `live_agent_verified` is always false. An observation is a recorder's assertion about
 observed behavior; the file format cannot establish its authenticity or completeness.
 Never relabel an agent's assertion as an observation to obtain PASS.
@@ -130,11 +133,21 @@ also input files. Omitting `--output` prints JSON to stdout. Errors go to stderr
 do not include raw input or exception traces. The default manifest is resolved from
 the installed script location, not from the current working directory.
 
+Both evaluation and comparison output are bounded to the loader's 1 MiB limit,
+including the final newline. Files and stdout use identical UTF-8 bytes with LF
+newlines, including on Windows. Pretty JSON is used when it fits; otherwise the CLI tries
+compact JSON with the same fields, values and deterministic key order. If that still
+exceeds 1 MiB, it returns exit code 2 with `Report file size limit exceeded.` before
+creating an output file or printing JSON. No references or results are dropped to fit.
+Valid manifest/evidence inputs can therefore be rejected at the output boundary when
+their aggregate report is too large; comparison can also exceed the cap because it
+retains both reports' references. Reduce the evidence reference volume per evaluation.
+
 | Exit | Evaluation | Comparison |
 |---|---|---|
 | 0 | Every scenario PASS | No regression, FAIL, or inconclusive pair |
 | 1 | At least one FAIL | A regression or a candidate FAIL, including unchanged FAIL |
-| 2 | Invalid/unreadable input or unwritable/existing output | Same |
+| 2 | Invalid/unreadable input, unwritable/existing output, or oversized report | Same |
 | 3 | No FAIL, at least one INCONCLUSIVE | No FAIL/regression, at least one inconclusive pair |
 
 Compare only the same manifest fingerprint and evidence mode. A changed rule library
@@ -221,3 +234,33 @@ The final source/diff review covered strict input validation, failure precedence
 missing/conflicting evidence, output non-overwrite, inert payloads and preserved CI
 gates. GitHub Actions for this stage, Ubuntu and Python 3.12 have **not** run locally
 or remotely; publishing this branch requires separate authorization.
+
+### P2 corrections to `a4f5577`
+
+Applied only in `feature/harness-evaluation-v01`, without staging or Git writes.
+Selective staging boundaries, if later authorized:
+
+1. Report byte bounds: `scripts/evaluate.py`, related CLI test hunks in
+   `tests/test_evaluation.py`, and the output-limit contract above.
+2. Failure-reason text bounds: `scripts/evaluation.py`, related API/CLI test hunks in
+   `tests/test_evaluation.py`, and the failure-reason contract above.
+
+TDD reproduced an unreadable 1,066,528-byte report, emission of an oversized compact
+report, and rejection of a generated failure reason by the existing text validator.
+A byte-level CLI test additionally failed on Windows CRLF translation before the stdout
+fix. All corresponding regressions pass after the minimal fixes; no broader refactor
+was needed. Five new tests and stronger existing assertions cover API/CLI round trips,
+determinism, preserved short reasons/references, unchanged safety limits, oversized
+comparison rejection, and absence of output creation/overwrite on size errors.
+
+Final checks on Windows / Python 3.14.6:
+
+- `py -B -m unittest discover -s tests -p 'test_*.py' -v`: **47 passed**.
+- `py -B -m scripts.validate_harness`: passed, 23 core files and 4 skills.
+- `py -B -m scripts.check_agent_entry --agent all`: `static_ready`.
+- `git diff --check` and final source/test diff review: passed.
+
+The 1 MiB and 8192-character limits are unchanged. Reports too large even as compact
+JSON require less evidence reference volume; long failure reasons summarize the
+remaining count instead of listing every failed ID. Ubuntu, Python 3.12, remote CI
+and live-agent behavior remain unverified by this local correction.

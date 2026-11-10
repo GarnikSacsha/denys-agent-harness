@@ -9,7 +9,8 @@ import tempfile
 import unittest
 from unittest.mock import patch
 
-from scripts.evaluation import InputError, compare_reports, evaluate, load_json, validate_manifest
+from scripts.evaluation import (MAX_BYTES, InputError, compare_reports, evaluate, load_json,
+                                validate_manifest, validate_report)
 
 ROOT = Path(__file__).resolve().parents[1]
 FIXTURES = ROOT / "tests/fixtures/evaluation"
@@ -165,6 +166,34 @@ class TestEvaluation(unittest.TestCase):
         with self.assertRaises(InputError):
             evaluate(self.manifest, evidence)
 
+    def test_many_failed_rules_produce_bounded_deterministic_reasons(self) -> None:
+        scenario = self.manifest["scenarios"][0]
+        rule = scenario["rules"][0]
+        rule_ids = [f"rule-{index:04}-" + "x" * 118 for index in range(999)]
+        scenario["rules"] = [{**rule, "id": rule_id} for rule_id in rule_ids] + scenario["rules"][1:]
+        evidence = self.fixtures["negative"]
+        report = evaluate(self.manifest, evidence)
+        validate_report(report)
+        reason = report["results"][0]["reason"]
+        failed_ids = sorted(rule_ids)
+        listed, omitted = reason.removeprefix("Observed violation of rule(s): ").rsplit("; ", 1)
+        listed_ids = listed.split(", ")
+        self.assertEqual(listed_ids, failed_ids[:len(listed_ids)])
+        self.assertGreater(len(listed_ids), 0)
+        self.assertEqual(omitted, f"{len(failed_ids) - len(listed_ids)} more failed rule(s).")
+        self.assertLessEqual(len(reason), 8192)
+        self.assertEqual(report["results"][0]["verdict"], "FAIL")
+        self.assertEqual(report["summary"]["FAIL"], 10)
+        scenario["rules"].reverse()
+        reordered = evaluate(self.manifest, evidence)
+        self.assertEqual(reordered["results"], report["results"])
+        comparison = compare_reports(report, report)
+        self.assertEqual(comparison["summary"]["unchanged"], 10)
+
+    def test_short_failure_reasons_keep_all_rule_ids(self) -> None:
+        result = self.report("negative")["results"][0]
+        self.assertEqual(result["reason"], "Observed violation of rule(s): files_preserved.")
+
     def test_test_results_reject_unknown_statuses(self) -> None:
         evidence = deepcopy(self.fixtures["positive"])
         for field in ("observed_test_results", "reported_test_results"):
@@ -211,6 +240,7 @@ class TestEvaluation(unittest.TestCase):
             lambda d: d["summary"].update(PASS=9),
             lambda d: d["results"][0].update(verdict="SUCCESS"),
             lambda d: d["results"][0].update(evidence_refs=[]),
+            lambda d: d["results"][0].update(reason="x" * 8193),
             lambda d: d.update(live_agent_verified=True),
         ]
         for index, mutate in enumerate(mutations):
@@ -222,9 +252,9 @@ class TestEvaluation(unittest.TestCase):
 
 
 class TestEvaluationCLI(unittest.TestCase):
-    def run_cli(self, *args: str) -> subprocess.CompletedProcess:
+    def run_cli(self, *args: str, binary: bool = False) -> subprocess.CompletedProcess:
         return subprocess.run([sys.executable, "-B", "-m", "scripts.evaluate", *map(str, args)],
-                              cwd=ROOT, capture_output=True, text=True, timeout=15)
+                              cwd=ROOT, capture_output=True, text=not binary, timeout=15)
 
     def test_cli_exit_codes_and_repeatable_json(self) -> None:
         for name, code in (("positive", 0), ("negative", 1), ("insufficient", 3)):
@@ -253,8 +283,111 @@ class TestEvaluationCLI(unittest.TestCase):
             self.assertEqual(result.returncode, 1, result.stderr)
             original = target.read_bytes()
             self.assertEqual(json.loads(original)["summary"]["FAIL"], 10)
+            printed = self.run_cli("evaluate", "--evidence", FIXTURES / "negative.json", binary=True)
+            self.assertEqual(printed.stdout, original)
             self.assertEqual(self.run_cli(*args).returncode, 2)
             self.assertEqual(target.read_bytes(), original)
+
+    def test_large_reports_round_trip_or_fail_before_output(self) -> None:
+        for dense_reasons in (False, True):
+            with self.subTest(dense_reasons=dense_reasons), tempfile.TemporaryDirectory(
+                    prefix="harness-eval-size-") as temp:
+                source, target = Path(temp) / "evidence.json", Path(temp) / "report.json"
+                manifest_path = Path(temp) / "manifest.json"
+                manifest = json.loads(MANIFEST.read_text(encoding="utf-8"))
+                name = "negative" if dense_reasons else "positive"
+                evidence = json.loads((FIXTURES / f"{name}.json").read_text(encoding="utf-8"))
+                if dense_reasons:
+                    for scenario in manifest["scenarios"]:
+                        rule = scenario["rules"][0]
+                        scenario["rules"] += [{**rule, "id": f"rule-{index:04}-" + "x" * 118}
+                                              for index in range(60)]
+                refs = [f"artifact-{index:04}-" + "x" * 114 for index in range(760)]
+                for record in evidence["records"]:
+                    record["artifact_refs"] = refs
+                manifest_path.write_text(json.dumps(manifest), encoding="utf-8")
+                source.write_text(json.dumps(evidence, separators=(",", ":")), encoding="utf-8")
+                self.assertLessEqual(source.stat().st_size, MAX_BYTES)
+                expected = evaluate(load_json(manifest_path), load_json(source))
+                pretty = json.dumps(expected, indent=2, sort_keys=True, ensure_ascii=True) + "\n"
+                compact = json.dumps(expected, separators=(",", ":"), sort_keys=True, ensure_ascii=True) + "\n"
+                self.assertGreater(len(pretty.encode("utf-8")), MAX_BYTES)
+                fits = len(compact.encode("utf-8")) <= MAX_BYTES
+                self.assertEqual(fits, not dense_reasons)
+                args = ("evaluate", "--manifest", manifest_path, "--evidence", source)
+                saved = self.run_cli(*args, "--output", target)
+                printed = self.run_cli(*args)
+                if fits:
+                    self.assertEqual(saved.returncode, 0, saved.stderr)
+                    self.assertEqual(printed.returncode, 0, printed.stderr)
+                    self.assertLessEqual(target.stat().st_size, MAX_BYTES)
+                    self.assertEqual(load_json(target), expected)
+                    comparison = compare_reports(load_json(target), load_json(target))
+                    self.assertEqual(comparison["summary"]["unchanged"], 10)
+                    self.assertEqual(printed.stdout, target.read_text(encoding="utf-8"))
+                    self.assertEqual(self.run_cli(*args, binary=True).stdout, target.read_bytes())
+                    self.assertEqual(self.run_cli(*args).stdout, printed.stdout)
+                    compared = self.run_cli("compare", "--baseline", target, "--candidate", target)
+                    self.assertEqual(compared.returncode, 2, compared.stderr)
+                    self.assertEqual(compared.stdout, "")
+                    self.assertIn("Report file size limit exceeded.", compared.stderr)
+                    comparison_path = Path(temp) / "comparison.json"
+                    compared = self.run_cli("compare", "--baseline", target, "--candidate", target,
+                                            "--output", comparison_path)
+                    self.assertEqual(compared.returncode, 2, compared.stderr)
+                    self.assertFalse(comparison_path.exists())
+                else:
+                    self.assertEqual(saved.returncode, 2, saved.stderr)
+                    self.assertFalse(target.exists())
+                    self.assertEqual(saved.stdout, "")
+                    self.assertEqual(printed.returncode, 2, printed.stderr)
+                    self.assertEqual(printed.stdout, "")
+                    self.assertIn("Report file size limit exceeded.", printed.stderr)
+                    self.assertNotIn("Traceback", printed.stderr)
+                    target.write_bytes(b"keep existing output")
+                    self.assertEqual(self.run_cli(*args, "--output", target).returncode, 2)
+                    self.assertEqual(target.read_bytes(), b"keep existing output")
+
+    def test_many_failures_round_trip_through_cli_comparison(self) -> None:
+        with tempfile.TemporaryDirectory(prefix="harness-eval-reason-") as temp:
+            manifest = json.loads(MANIFEST.read_text(encoding="utf-8"))
+            scenario = manifest["scenarios"][0]
+            scenario["rules"] += [{**scenario["rules"][0], "id": f"rule-{index:04}-" + "x" * 118}
+                                  for index in range(100)]
+            source, target = Path(temp) / "manifest.json", Path(temp) / "report.json"
+            source.write_text(json.dumps(manifest), encoding="utf-8")
+            args = ("evaluate", "--manifest", source, "--evidence", FIXTURES / "negative.json")
+            saved = self.run_cli(*args, "--output", target)
+            self.assertEqual(saved.returncode, 1, saved.stderr)
+            report = load_json(target)
+            validate_report(report)
+            self.assertEqual(report["summary"]["FAIL"], 10)
+            self.assertIn("more failed rule(s).", report["results"][0]["reason"])
+            self.assertEqual(self.run_cli(*args).stdout, target.read_text(encoding="utf-8"))
+            compared = self.run_cli("compare", "--baseline", target, "--candidate", target)
+            self.assertEqual(compared.returncode, 1, compared.stderr)
+            self.assertEqual(json.loads(compared.stdout)["summary"]["unchanged"], 10)
+
+    def test_large_comparison_uses_compact_json_without_losing_references(self) -> None:
+        with tempfile.TemporaryDirectory(prefix="harness-compare-size-") as temp:
+            source, target = Path(temp) / "evidence.json", Path(temp) / "report.json"
+            evidence = json.loads((FIXTURES / "positive.json").read_text(encoding="utf-8"))
+            refs = [f"artifact-{index:04}-" + "x" * 114 for index in range(380)]
+            for record in evidence["records"]:
+                record["artifact_refs"] = refs
+            source.write_text(json.dumps(evidence), encoding="utf-8")
+            saved = self.run_cli("evaluate", "--evidence", source, "--output", target)
+            self.assertEqual(saved.returncode, 0, saved.stderr)
+            expected = compare_reports(load_json(target), load_json(target))
+            pretty = json.dumps(expected, indent=2, sort_keys=True, ensure_ascii=True) + "\n"
+            self.assertGreater(len(pretty.encode("utf-8")), MAX_BYTES)
+            comparison_path = Path(temp) / "comparison.json"
+            args = ("compare", "--baseline", target, "--candidate", target)
+            compared = self.run_cli(*args, "--output", comparison_path)
+            self.assertEqual(compared.returncode, 0, compared.stderr)
+            self.assertLessEqual(comparison_path.stat().st_size, MAX_BYTES)
+            self.assertEqual(load_json(comparison_path), expected)
+            self.assertEqual(self.run_cli(*args).stdout, comparison_path.read_text(encoding="utf-8"))
 
     def test_compare_cli_does_not_hide_failures_or_inconclusive(self) -> None:
         with tempfile.TemporaryDirectory(prefix="harness-eval-compare-") as temp:
