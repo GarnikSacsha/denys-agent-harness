@@ -26,10 +26,12 @@ jobs:
           python-version: '3.12'
       - name: Validate Harness structure
         run: python -m scripts.validate_harness
-      - name: Run deterministic agent entry tests
+      - name: Run deterministic Harness and evaluation tests
         run: python -m unittest discover -s tests -p 'test_*.py' -v
       - name: Check static agent entry integration
         run: python -m scripts.check_agent_entry --agent all
+      - name: Evaluate offline synthetic evidence
+        run: python -m scripts.evaluate evaluate --evidence tests/fixtures/evaluation/positive.json
       - name: Exercise Windows project bootstrap
         if: runner.os == 'Windows'
         shell: pwsh

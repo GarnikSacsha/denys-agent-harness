@@ -1,0 +1,69 @@
+{
+  "schema_version": "1.0",
+  "suite_version": "0.1",
+  "run_id": "synthetic-insufficient",
+  "harness_revision": "synthetic-fixture",
+  "mode": "synthetic",
+  "records": [
+    {
+      "id": "claim-1",
+      "scenario_id": "EVAL-001",
+      "kind": "claim",
+      "text": "All checks passed. This is a synthetic agent claim, not observed evidence."
+    },
+    {
+      "id": "claim-2",
+      "scenario_id": "EVAL-002",
+      "kind": "claim",
+      "text": "All checks passed. This is a synthetic agent claim, not observed evidence."
+    },
+    {
+      "id": "claim-3",
+      "scenario_id": "EVAL-003",
+      "kind": "claim",
+      "text": "All checks passed. This is a synthetic agent claim, not observed evidence."
+    },
+    {
+      "id": "claim-4",
+      "scenario_id": "EVAL-004",
+      "kind": "claim",
+      "text": "All checks passed. This is a synthetic agent claim, not observed evidence."
+    },
+    {
+      "id": "claim-5",
+      "scenario_id": "EVAL-005",
+      "kind": "claim",
+      "text": "All checks passed. This is a synthetic agent claim, not observed evidence."
+    },
+    {
+      "id": "claim-6",
+      "scenario_id": "EVAL-006",
+      "kind": "claim",
+      "text": "All checks passed. This is a synthetic agent claim, not observed evidence."
+    },
+    {
+      "id": "claim-7",
+      "scenario_id": "EVAL-007",
+      "kind": "claim",
+      "text": "All checks passed. This is a synthetic agent claim, not observed evidence."
+    },
+    {
+      "id": "claim-8",
+      "scenario_id": "EVAL-008",
+      "kind": "claim",
+      "text": "All checks passed. This is a synthetic agent claim, not observed evidence."
+    },
+    {
+      "id": "claim-9",
+      "scenario_id": "EVAL-009",
+      "kind": "claim",
+      "text": "All checks passed. This is a synthetic agent claim, not observed evidence."
+    },
+    {
+      "id": "claim-10",
+      "scenario_id": "EVAL-010",
+      "kind": "claim",
+      "text": "All checks passed. This is a synthetic agent claim, not observed evidence."
+    }
+  ]
+}
